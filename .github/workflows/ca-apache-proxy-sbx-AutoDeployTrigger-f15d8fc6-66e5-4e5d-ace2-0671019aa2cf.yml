@@ -1,0 +1,42 @@
+name: Trigger auto deployment for ca-apache-proxy-sbx
+
+# When this action will be executed
+on:
+  # Automatically trigger it when detected changes in repo
+  push:
+    branches: 
+      [ main ]
+    paths:
+    - '**'
+    - '.github/workflows/ca-apache-proxy-sbx-AutoDeployTrigger-f15d8fc6-66e5-4e5d-ace2-0671019aa2cf.yml'
+
+  # Allow mannually trigger 
+  workflow_dispatch:
+      
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout to the branch
+        uses: actions/checkout@v2
+
+      - name: Azure Login
+        uses: azure/login@v1
+        with:
+          creds: ${{ secrets.CAAPACHEPROXYSBX_AZURE_CREDENTIALS }}
+
+      - name: Build and push container image to registry
+        uses: azure/container-apps-deploy-action@v1
+        with:
+          appSourcePath: ${{ github.workspace }} 
+          registryUrl: docker.io
+          registryUsername: ${{ secrets.CAAPACHEPROXYSBX_REGISTRY_USERNAME }}
+          registryPassword: ${{ secrets.CAAPACHEPROXYSBX_REGISTRY_PASSWORD }}
+          containerAppName: ca-apache-proxy-sbx
+          resourceGroup: rg-learn-sbx-ckreitz
+          imageToBuild: kreitzmhk/ca-apache-proxy-sbx:${{ github.sha }}
+          
+
+     
+
